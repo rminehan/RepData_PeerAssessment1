@@ -1,17 +1,13 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Rohan Minehan"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+Rohan Minehan  
 
 
 ## Loading and preprocessing the data
 
 Load the raw data (with NA values)
 
-```{r raw_data}
+
+```r
 raw_data <- read.table(unz("activity.zip", "activity.csv"), header=T, sep=",")
 # Convert date column to Date type
 raw_data$date <- as.Date(raw_data$date, format = "%Y-%m-%d")
@@ -19,9 +15,20 @@ raw_data$date <- as.Date(raw_data$date, format = "%Y-%m-%d")
 
 Create a cleaned set with no NA values. This is used for the questions where no missing values are imputed
 
-```{r data}
+
+```r
 data <- na.omit(raw_data)
 head(data)
+```
+
+```
+##     steps       date interval
+## 289     0 2012-10-02        0
+## 290     0 2012-10-02        5
+## 291     0 2012-10-02       10
+## 292     0 2012-10-02       15
+## 293     0 2012-10-02       20
+## 294     0 2012-10-02       25
 ```
 
 
@@ -31,24 +38,50 @@ head(data)
 
 #### Part 1 - daily mean
 
-```{r question_1_part_1}
+
+```r
 daily_steps <- aggregate(data$steps, by=list(date=data$date), FUN=sum)
 # Rename aggregation column 'x' to 'steps'
 colnames(daily_steps)[2] <- "steps"
 head(daily_steps)
 ```
 
+```
+##         date steps
+## 1 2012-10-02   126
+## 2 2012-10-03 11352
+## 3 2012-10-04 12116
+## 4 2012-10-05 13294
+## 5 2012-10-06 15420
+## 6 2012-10-07 11015
+```
+
 #### Part 2 - histogram
 
-```{r question_1_part_2}
+
+```r
 hist(daily_steps$steps)
 ```
 
+![](PA1_template_files/figure-html/question_1_part_2-1.png)<!-- -->
+
 #### Part 3 - mean and median of total steps per day
 
-```{r question_1_part_3}
+
+```r
 mean(daily_steps$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(daily_steps$steps)
+```
+
+```
+## [1] 10765
 ```
 
 The daily mean is `10766.19` and the daily median is `10765`.
@@ -58,7 +91,8 @@ The daily mean is `10766.19` and the daily median is `10765`.
 
 #### Part 1 - time series plot across 5 minute intervals aggregated
 
-```{r question_2_part_1}
+
+```r
 five_minute_steps <- aggregate(data$steps, by=list(interval=data$interval), FUN=mean)
 # Rename aggregation column 'x' to 'steps'
 colnames(five_minute_steps)[2] <- "steps"
@@ -66,26 +100,37 @@ colnames(five_minute_steps)[2] <- "steps"
 plot(five_minute_steps, type="l")
 ```
 
+![](PA1_template_files/figure-html/question_2_part_1-1.png)<!-- -->
+
 #### Part 2 - maximum steps
 
-```{r question_2_part_2}
+
+```r
 index_with_max = which.max(five_minute_steps[, 2])
 interval_with_max = five_minute_steps[index_with_max, "interval"]
 ```
 
-The interval with the most steps on average is `r interval_with_max`, ie. 8:35am.
+The interval with the most steps on average is 835, ie. 8:35am.
 
 ## Imputing missing values
 
 #### Part 1 - report missing values (NA's)
 
-```{r question_3_part_1}
-colSums(is.na(raw_data))
 
+```r
+colSums(is.na(raw_data))
+```
+
+```
+##    steps     date interval 
+##     2304        0        0
+```
+
+```r
 num_missing_steps = sum(is.na(raw_data$steps))
 ```
 
-There are `r num_missing_steps` missing steps.
+There are 2304 missing steps.
 
 #### Part 2 - devise a strategy for repaired data
 
@@ -99,7 +144,8 @@ We will fill missing data "locally". For a particular interval, the mean of the 
 
 The data set with missing data filled in will be called `repaired_data`.
 
-```{r question_3_part_2}
+
+```r
 days_missing_data <- unique(raw_data[is.na(raw_data$steps),]$date)
 repaired_data <- raw_data
 
@@ -115,13 +161,30 @@ for (date in days_missing_data) {
 
 #### Part 4 - daily histogram, mean and median for repaired data
 
-```{r question_3_part_3}
+
+```r
 repaired_daily_steps <- aggregate(repaired_data$steps, by=list(date=repaired_data$date), FUN=sum)
 colnames(repaired_daily_steps)[2] <- "steps"
 
 hist(repaired_daily_steps$steps)
+```
+
+![](PA1_template_files/figure-html/question_3_part_3-1.png)<!-- -->
+
+```r
 mean(repaired_daily_steps$steps)
+```
+
+```
+## [1] 10640.72
+```
+
+```r
 median(repaired_daily_steps$steps)
+```
+
+```
+## [1] 10565.4
 ```
 
 Both the repaired mean and median have decreased, ie. imputing data by using a local average has decreases these global estimates.
@@ -131,7 +194,8 @@ Both the repaired mean and median have decreased, ie. imputing data by using a l
 
 #### Part 1 - create factor with levels "weekday" and "weekend"
 
-```{r question_4_part_1}
+
+```r
 calculate_factor <- function(date) {
   day_of_week <- weekdays(date)
   if (day_of_week == 'Saturday' | day_of_week == 'Sunday') {
@@ -147,7 +211,8 @@ repaired_data$factor <- sapply(repaired_data$date, calculate_factor)
 
 #### Part 2 - weekday vs weekend for each 5 minute interval
 
-```{r question_4_part_2}
+
+```r
 analyze_factor <- function(factor_value) {
   library(lattice)
   factor_data <- repaired_data[repaired_data$factor == factor_value,]
@@ -160,7 +225,16 @@ weekend_plot <- analyze_factor('weekend')
 weekday_plot <- analyze_factor('weekday')
 
 require(gridExtra)
+```
+
+```
+## Loading required package: gridExtra
+```
+
+```r
 grid.arrange(weekend_plot, weekday_plot, nrow=2)
 ```
+
+![](PA1_template_files/figure-html/question_4_part_2-1.png)<!-- -->
 
 A quick visual comparison shows that activity is spread more evenly through the day on the weekend. But on weekdays, activity spikes around 8:30am..
